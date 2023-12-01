@@ -106,7 +106,7 @@ namespace _2048
                     }
                 }
 
-                // Merge numbers
+              /*  // Merge numbers
                 for (int row = 1; row < tableau.GetLength(0); row++)
                 {
                     if (tableau[row - 1, col] == tableau[row, col] && tableau[row, col] != 0)
@@ -115,7 +115,7 @@ namespace _2048
                         tableau[row, col] = 0;
                         row++; // Skip the next cell
                     }
-                }
+                } */
             }
         }
 
@@ -140,7 +140,7 @@ namespace _2048
                     }
                 }
 
-                // Merge numbers
+              /*  // Merge numbers
                 for (int col = tableau.GetLength(1) - 2; col >= 0; col--)
                 {
                     if (tableau[row, col + 1] == tableau[row, col] && tableau[row, col] != 0)
@@ -149,8 +149,8 @@ namespace _2048
                         tableau[row, col] = 0;
                         col--; // Skip the next cell
                     }
-                }
-            }
+                } */ 
+            } 
         }
 
 
@@ -174,7 +174,7 @@ namespace _2048
                     }
                 }
 
-                // Merge numbers
+               /* // Merge numbers
                 for (int row = tableau.GetLength(0) - 2; row >= 0; row--)
                 {
                     if (tableau[row + 1, col] == tableau[row, col] && tableau[row, col] != 0)
@@ -183,9 +183,9 @@ namespace _2048
                         tableau[row, col] = 0;
                         row--; // Skip the next cell
                     }
-                }
+                } */
             }
-        }
+        } 
 
 
 
@@ -210,7 +210,7 @@ namespace _2048
                     }
                 }
 
-                // Then merge numbers
+               /* // Then merge numbers
                 for (int col = 1; col < tableau.GetLength(1); col++)
                 {
                     if (tableau[row, col - 1] == tableau[row, col] && tableau[row, col] != 0)
@@ -221,7 +221,7 @@ namespace _2048
                         // Skip the next cell to avoid multiple merges
                         col++;
                     }
-                }
+                } */
                 Console.WriteLine($"After processing row {row}:");
                 DisplayTableau();
 
