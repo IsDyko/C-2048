@@ -13,7 +13,8 @@ namespace _2048
         static void Main(string[] args)
         {
             ClearScreen();
-            AddNewNumber();
+            AddNewNumber();  // First number
+            AddNewNumber();  // Second number
             DisplayTableau();
 
             while (true)
@@ -21,36 +22,38 @@ namespace _2048
                 if (!isGameOver)
                 {
                     ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-                    switch (keyInfo.Key)
+                    if (keyInfo.Key == ConsoleKey.LeftArrow ||
+                        keyInfo.Key == ConsoleKey.UpArrow ||
+                        keyInfo.Key == ConsoleKey.RightArrow ||
+                        keyInfo.Key == ConsoleKey.DownArrow)
                     {
-                        case ConsoleKey.LeftArrow:
-                        case ConsoleKey.UpArrow:
-                        case ConsoleKey.RightArrow:
-                        case ConsoleKey.DownArrow:
-                            ProcessInput(keyInfo.Key);
-                            ClearScreen();
-                            DisplayTableau();
+                        bool boardChanged = ProcessInput(keyInfo.Key);
+                        if (boardChanged)
+                        {
+                            AddNewNumber();
+                        }
 
-                            if (CheckWin())
-                            {
-                                Console.WriteLine("You Win!");
-                                isGameOver = true;
-                            }
-                            else if (!CanMakeMove())
-                            {
-                                Console.WriteLine("Game Lost");
-                                isGameOver = true;
-                            }
-                            else
-                            {
-                                AddNewNumber();
-                            }
-                            break;
-                        case ConsoleKey.C:
-                            return; // Exit the game
-                        default:
-                            Console.WriteLine("La touche n'est pas reconnue");
-                            break;
+                        ClearScreen();
+                        DisplayTableau();
+
+                        if (CheckWin())
+                        {
+                            Console.WriteLine("You Win!");
+                            isGameOver = true;
+                        }
+                        else if (!CanMakeMove())
+                        {
+                            Console.WriteLine("Game Lost");
+                            isGameOver = true;
+                        }
+                    }
+                    else if (keyInfo.Key == ConsoleKey.C)
+                    {
+                        return; // Exit the game
+                    }
+                    else
+                    {
+                        Console.WriteLine("La touche n'est pas reconnue");
                     }
                 }
                 else
@@ -65,8 +68,13 @@ namespace _2048
         }
 
 
-        static void ProcessInput(ConsoleKey key)
+
+
+
+        static bool ProcessInput(ConsoleKey key)
         {
+            int[,] originalTableau = (int[,])tableau.Clone(); // Create a copy of the board before the move
+
             switch (key)
             {
                 case ConsoleKey.LeftArrow:
@@ -82,7 +90,12 @@ namespace _2048
                     MoveDown();
                     break;
             }
+
+            return HasBoardChanged(originalTableau, tableau); // Check if the board changed after the move
         }
+
+
+
 
         static void ClearScreen()
         {
@@ -171,9 +184,23 @@ namespace _2048
                     if (tableau[row - 1, col] == tableau[row, col] && tableau[row, col] != 0)
                     {
                         tableau[row - 1, col] *= 2;
-                        tableau[row, col] = 0;
                         score += tableau[row - 1, col];
-                        row++; // Skip the next cell
+                        tableau[row, col] = 0;
+                    }
+                }
+
+                // Slide again to fill any new empty spaces created after merging
+                for (int row = 1; row < tableau.GetLength(0); row++)
+                {
+                    if (tableau[row, col] != 0)
+                    {
+                        int currentRow = row;
+                        while (currentRow > 0 && tableau[currentRow - 1, col] == 0)
+                        {
+                            tableau[currentRow - 1, col] = tableau[currentRow, col];
+                            tableau[currentRow, col] = 0;
+                            currentRow--;
+                        }
                     }
                 }
             }
@@ -206,13 +233,28 @@ namespace _2048
                     if (tableau[row, col + 1] == tableau[row, col] && tableau[row, col] != 0)
                     {
                         tableau[row, col + 1] *= 2;
-                        tableau[row, col] = 0;
                         score += tableau[row, col + 1];
-                        col--; // Skip the next cell
+                        tableau[row, col] = 0;
+                    }
+                }
+
+                // Slide again to fill any new empty spaces created after merging
+                for (int col = tableau.GetLength(1) - 2; col >= 0; col--)
+                {
+                    if (tableau[row, col] != 0)
+                    {
+                        int currentCol = col;
+                        while (currentCol < tableau.GetLength(1) - 1 && tableau[row, currentCol + 1] == 0)
+                        {
+                            tableau[row, currentCol + 1] = tableau[row, currentCol];
+                            tableau[row, currentCol] = 0;
+                            currentCol++;
+                        }
                     }
                 }
             }
         }
+
 
 
 
@@ -241,9 +283,24 @@ namespace _2048
                     if (tableau[row + 1, col] == tableau[row, col] && tableau[row, col] != 0)
                     {
                         tableau[row + 1, col] *= 2;
-                        tableau[row, col] = 0;
                         score += tableau[row + 1, col];
-                        row--; // Skip the next cell
+                        tableau[row, col] = 0;
+                        row--; // Skip the next cell to avoid multiple merges
+                    }
+                }
+
+                // Slide again to fill any new empty spaces created after merging
+                for (int row = tableau.GetLength(0) - 2; row >= 0; row--)
+                {
+                    if (tableau[row, col] != 0)
+                    {
+                        int currentRow = row;
+                        while (currentRow < tableau.GetLength(0) - 1 && tableau[currentRow + 1, col] == 0)
+                        {
+                            tableau[currentRow + 1, col] = tableau[currentRow, col];
+                            tableau[currentRow, col] = 0;
+                            currentRow++;
+                        }
                     }
                 }
             }
@@ -251,11 +308,12 @@ namespace _2048
 
 
 
+
         static void MoveLeft()
         {
             for (int row = 0; row < tableau.GetLength(0); row++)
             {
-                // First slide all numbers to the left
+                // Slide all numbers to the left
                 for (int col = 1; col < tableau.GetLength(1); col++)
                 {
                     if (tableau[row, col] != 0)
@@ -270,23 +328,34 @@ namespace _2048
                     }
                 }
 
-                // merge numbers
+                // Merge numbers
                 for (int col = 1; col < tableau.GetLength(1); col++)
                 {
                     if (tableau[row, col - 1] == tableau[row, col] && tableau[row, col] != 0)
                     {
                         tableau[row, col - 1] *= 2;
-                        tableau[row, col] = 0;
                         score += tableau[row, col - 1];
-
-                        // Skip the next cell to avoid multiple merges
-                        col++;
+                        tableau[row, col] = 0;
                     }
                 }
-                DisplayTableau();
 
+                // Slide again to fill any new empty spaces created after merging
+                for (int col = 1; col < tableau.GetLength(1); col++)
+                {
+                    if (tableau[row, col] != 0)
+                    {
+                        int currentCol = col;
+                        while (currentCol > 0 && tableau[row, currentCol - 1] == 0)
+                        {
+                            tableau[row, currentCol - 1] = tableau[row, currentCol];
+                            tableau[row, currentCol] = 0;
+                            currentCol--;
+                        }
+                    }
+                }
             }
         }
+
 
         static bool CanMakeMove()
         {
@@ -321,6 +390,19 @@ namespace _2048
             return false;
         }
 
+        static bool HasBoardChanged(int[,] original, int[,] current)
+        {
+            for (int row = 0; row < original.GetLength(0); row++)
+            {
+                for (int col = 0; col < original.GetLength(1); col++)
+                {
+                    if (original[row, col] != current[row, col])
+                        return true;
+                }
+            }
+            return false;
+        }
+
         static void SetConsoleColor(int number)
         {
             switch (number)
@@ -345,3 +427,4 @@ namespace _2048
 }
 
 /*FIN*/
+// 2048
